@@ -1,97 +1,155 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-contract EventContract {
-    struct Event {
-        uint256 eventId;
-        address creator;
-        uint256 eventDate;
-        uint256 deposit;
-        mapping(address => bool) participants;
-        address[] participantList;
-        bool finalized;
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
+contract EventContract is Initializable, OwnableUpgradeable {
+    enum UserStatus {
+        Invited,
+        Pending,
+        Accepted
+    }
+    enum PenaltyMode {
+        Harsh,
+        Moderate,
+        Lenient
+    }
+    enum ValidationMode {
+        Chainlink,
+        Vote,
+        NFC
     }
 
-    uint256 public eventCount = 0;
+    struct Event {
+        uint256 eventId;
+        string name;
+        uint256 regDeadline;
+        uint256 arrivalTime;
+        bool isEnded;
+        ValidationMode validationMode;
+        PenaltyMode penaltyMode;
+        mapping(address => UserStatus) participantStatus;
+        address[] participantList;
+    }
+
+    uint256 public eventCount;
     mapping(uint256 => Event) public events;
+    mapping(address => uint256[]) public joinedEvents;
+    mapping(address => uint256) public lateCount;
+    mapping(address => uint256) public eventCountByUser;
 
     event EventCreated(
         uint256 eventId,
-        address creator,
-        uint256 eventDate,
-        uint256 deposit
+        string name,
+        uint256 regDeadline,
+        uint256 arrivalTime
     );
-    event JoinedEvent(uint256 eventId, address participant);
-    event CheckedArrival(uint256 eventId, address participant, bool arrived);
+    event UserInvited(uint256 eventId, address invitee);
+    event UserAccepted(uint256 eventId, address participant);
+    event UserCheckedArrival(uint256 eventId, address participant, bool onTime);
 
-    function createEvent(uint256 _eventDate, uint256 _deposit) public {
+    function initialize() public initializer {
+        __Ownable_init();
+    }
+
+    function createEvent(
+        string memory _name,
+        uint256 _regDeadline,
+        uint256 _arrivalTime,
+        ValidationMode _validationMode,
+        PenaltyMode _penaltyMode
+    ) public onlyOwner {
         eventCount++;
         Event storage newEvent = events[eventCount];
         newEvent.eventId = eventCount;
-        newEvent.creator = msg.sender;
-        newEvent.eventDate = _eventDate;
-        newEvent.deposit = _deposit;
-        newEvent.finalized = false;
+        newEvent.name = _name;
+        newEvent.regDeadline = _regDeadline;
+        newEvent.arrivalTime = _arrivalTime;
+        newEvent.isEnded = false;
+        newEvent.validationMode = _validationMode;
+        newEvent.penaltyMode = _penaltyMode;
 
-        emit EventCreated(eventCount, msg.sender, _eventDate, _deposit);
+        emit EventCreated(eventCount, _name, _regDeadline, _arrivalTime);
     }
 
-    //@todo
-    function invite(address _invitee) public {
-        // This function should be called by the creator
-        // This function should add the invitee to the participant list while allow the invitee to join/reject the event
-        // This function should emit an event
-    }
-
-    function joinEvent(uint256 _eventId) public payable {
-        //@todo validation for the event
-
+    function inviteUser(uint256 _eventId, address _invitee) public onlyOwner {
         Event storage myEvent = events[_eventId];
-        require(msg.value == myEvent.deposit, "Incorrect deposit amount");
-        require(!myEvent.participants[msg.sender], "Already joined");
+        require(
+            myEvent.participantStatus[_invitee] == UserStatus.Invited,
+            "User already invited"
+        );
+        myEvent.participantStatus[_invitee] = UserStatus.Invited;
 
-        myEvent.participants[msg.sender] = true;
+        emit UserInvited(_eventId, _invitee);
+    }
+
+    function acceptInvite(uint256 _eventId) public payable {
+        Event storage myEvent = events[_eventId];
+        require(
+            myEvent.participantStatus[msg.sender] == UserStatus.Invited,
+            "No invitation found"
+        );
+        require(
+            block.timestamp <= myEvent.regDeadline,
+            "Registration deadline passed"
+        );
+
+        myEvent.participantStatus[msg.sender] = UserStatus.Accepted;
         myEvent.participantList.push(msg.sender);
+        joinedEvents[msg.sender].push(_eventId);
+        eventCountByUser[msg.sender]++;
 
-        emit JoinedEvent(_eventId, msg.sender);
+        emit UserAccepted(_eventId, msg.sender);
     }
 
-    //@todo the arrive boolean should be checked by an oracle
-    function checkArrival(uint256 _eventId, address _participant) public {
-        // This function should be called by an oracle
+    function checkArrival(
+        uint256 _eventId,
+        address _participant
+    ) public onlyOwner {
         Event storage myEvent = events[_eventId];
-        require(myEvent.participants[_participant], "Not a participant");
-        require(block.timestamp >= myEvent.eventDate, "Event date not reached");
-        require(!myEvent.finalized, "Event already finalized");
+        require(
+            myEvent.participantStatus[_participant] == UserStatus.Accepted,
+            "User not accepted"
+        );
+        require(
+            block.timestamp >= myEvent.arrivalTime,
+            "Event has not started"
+        );
+        require(!myEvent.isEnded, "Event already ended");
 
-        bool _arrived = validateArrival(_eventId, _participant);
-
-        if (!_arrived) {
-            uint256 share = myEvent.deposit /
-                (myEvent.participantList.length - 1);
-            for (uint256 i = 0; i < myEvent.participantList.length; i++) {
-                if (myEvent.participantList[i] != _participant) {
-                    payable(myEvent.participantList[i]).transfer(share);
-                }
-            }
-        } else {
-            payable(_participant).transfer(myEvent.deposit);
+        bool onTime = validateArrival(_eventId, _participant);
+        if (!onTime) {
+            lateCount[_participant]++;
+            // Handle penalty distribution based on penalty mode
+            handlePenalty(_eventId, _participant);
         }
 
-        //@todo edit finailise logic
-        myEvent.finalized = true;
-
-        emit CheckedArrival(_eventId, _participant, _arrived);
+        myEvent.isEnded = true;
+        emit UserCheckedArrival(_eventId, _participant, onTime);
     }
-
-    //@todo
 
     function validateArrival(
         uint256 _eventId,
         address _participant
-    ) public view returns (bool) {
-        // This function should be called by an oracle
-        // This function should return a boolean value
+    ) internal view returns (bool) {
+        // Implement validation logic based on validation mode
+        // Example: Chainlink oracle, voting, or NFC validation
         return true;
+    }
+
+    function handlePenalty(uint256 _eventId, address _participant) internal {
+        // Implement penalty distribution based on penalty mode
+        // Example: Harsh, Moderate, or Lenient penalty
+    }
+
+    function getUserJoinedEvents(
+        address _user
+    ) public view returns (uint256[] memory) {
+        return joinedEvents[_user];
+    }
+
+    function getUserLateCount(address _user) public view returns (uint256) {
+        return lateCount[_user];
     }
 }

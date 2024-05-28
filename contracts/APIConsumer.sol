@@ -95,9 +95,9 @@ contract APIConsumer is ChainlinkClient, ConfirmedOwner {
      */
     function withdrawLink() public onlyOwner {
         LinkTokenInterface link = LinkTokenInterface(_chainlinkTokenAddress());
-        require(
-            link.transfer(msg.sender, link.balanceOf(address(this))),
-            "Unable to transfer"
-        );
+        // require(
+        //     link.transfer(msg.sender, link.balanceOf(address(this))),
+        //     "Unable to transfer"
+        // );
     }
 }
