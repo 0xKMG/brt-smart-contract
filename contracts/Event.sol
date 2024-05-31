@@ -1,53 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract EventContract is Initializable, OwnableUpgradeable {
-    enum UserStatus {
-        Invited,
-        Pending,
-        Accepted
-    }
-    enum PenaltyMode {
-        Harsh,
-        Moderate,
-        Lenient
-    }
-    enum ValidationMode {
-        Chainlink,
-        Vote,
-        NFC
-    }
 
-    struct Event {
-        uint256 eventId;
-        string name;
-        uint256 regDeadline;
-        uint256 arrivalTime;
-        bool isEnded;
-        ValidationMode validationMode;
-        PenaltyMode penaltyMode;
-        mapping(address => UserStatus) participantStatus;
-        address[] participantList;
-    }
+import {IEventContract} from "./IEventContract.sol";
 
+contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
     uint256 public eventCount;
+
     mapping(uint256 => Event) public events;
     mapping(address => uint256[]) public joinedEvents;
     mapping(address => uint256) public lateCount;
     mapping(address => uint256) public eventCountByUser;
-
-    event EventCreated(
-        uint256 eventId,
-        string name,
-        uint256 regDeadline,
-        uint256 arrivalTime
-    );
-    event UserInvited(uint256 eventId, address invitee);
-    event UserAccepted(uint256 eventId, address participant);
-    event UserCheckedArrival(uint256 eventId, address participant, bool onTime);
 
     function initialize() public initializer {
         __Ownable_init(msg.sender);
@@ -57,8 +23,9 @@ contract EventContract is Initializable, OwnableUpgradeable {
         string memory _name,
         uint256 _regDeadline,
         uint256 _arrivalTime,
-        ValidationMode _validationMode,
-        PenaltyMode _penaltyMode
+        // ValidationMode _validationMode,
+        // PenaltyMode _penaltyMode,
+        address[] memory _invitees
     ) public onlyOwner {
         eventCount++;
         Event storage newEvent = events[eventCount];
@@ -67,10 +34,25 @@ contract EventContract is Initializable, OwnableUpgradeable {
         newEvent.regDeadline = _regDeadline;
         newEvent.arrivalTime = _arrivalTime;
         newEvent.isEnded = false;
-        newEvent.validationMode = _validationMode;
-        newEvent.penaltyMode = _penaltyMode;
+        // newEvent.validationMode = _validationMode;
+        // newEvent.penaltyMode = _penaltyMode;
+
+        inviteUsers(eventCount, _invitees);
 
         emit EventCreated(eventCount, _name, _regDeadline, _arrivalTime);
+    }
+
+    //function to invite an array of users
+    function inviteUsers(
+        uint256 _eventId,
+        address[] memory _invitees
+    ) public onlyOwner {
+        for (uint256 i; i < _invitees.length; ) {
+            inviteUser(_eventId, _invitees[i]);
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     function inviteUser(uint256 _eventId, address _invitee) public onlyOwner {
@@ -152,7 +134,4 @@ contract EventContract is Initializable, OwnableUpgradeable {
     function getUserLateCount(address _user) public view returns (uint256) {
         return lateCount[_user];
     }
-
-    
-
 }
