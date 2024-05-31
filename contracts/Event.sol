@@ -50,7 +50,7 @@ contract EventContract is Initializable, OwnableUpgradeable {
     event UserCheckedArrival(uint256 eventId, address participant, bool onTime);
 
     function initialize() public initializer {
-        __Ownable_init();
+        __Ownable_init(msg.sender);
     }
 
     function createEvent(
@@ -152,4 +152,7 @@ contract EventContract is Initializable, OwnableUpgradeable {
     function getUserLateCount(address _user) public view returns (uint256) {
         return lateCount[_user];
     }
+
+    
+
 }
