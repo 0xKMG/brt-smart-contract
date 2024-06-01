@@ -10,12 +10,15 @@ interface IEventContract {
         bool isEnded;
         mapping(address => UserStatus) participantStatus;
         address[] participantList;
+        address[] onTimeParticipants;
+        uint256 penalties;
+        uint256 commitmentRequired;
+        uint256 totalCommitment;
         ValidationMode validationMode;
         PenaltyMode penaltyMode;
     }
     enum UserStatus {
         Invited,
-        Pending,
         Accepted
     }
     enum PenaltyMode {
