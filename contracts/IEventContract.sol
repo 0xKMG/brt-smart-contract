@@ -14,6 +14,7 @@ interface IEventContract {
         uint256 penalties;
         uint256 commitmentRequired;
         uint256 totalCommitment;
+        bytes32 location;  // Encoded latitude and longitude
         ValidationMode validationMode;
         PenaltyMode penaltyMode;
     }

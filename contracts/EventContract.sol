@@ -27,6 +27,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         uint256 _arrivalTime, //timestamp for event start time
         uint256 commitment,
         uint256 penalty,
+        bytes32 _location,
         address[] memory _invitees
     )
         public
@@ -44,6 +45,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         newEvent.arrivalTime = _arrivalTime;
         newEvent.isEnded = false;
         newEvent.commitmentRequired = commitment;
+        newEvent.location = _location;
         // newEvent.validationMode = _validationMode;
         // newEvent.penaltyMode = _penaltyMode;
         inviteUsers(eventCount, _invitees);
@@ -108,15 +110,13 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
                 ++i;
             }
         }
-        //distribute the penalty to the ontime participants in claimableAmount 
+        //distribute the penalty to the ontime participants in claimableAmount
         for (uint256 i; i < myEvent.onTimeParticipants.length; ) {
             userClaimableAmount[myEvent.onTimeParticipants[i]] += myEvent.penalties / myEvent.onTimeParticipants.length;
             unchecked {
                 ++i;
             }
         }
-
-
 
         myEvent.isEnded = true;
     }
@@ -147,5 +147,29 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         require(userClaimableAmount[msg.sender] > 0, "No claimable amount");
         userClaimableAmount[msg.sender] = 0;
         token.safeTransfer(msg.sender, userClaimableAmount[msg.sender]);
+    }
+
+    function decodeCoordinates(bytes32 encoded) public pure returns (int256 latitude, int256 longitude) {
+        // Extract latitude by shifting right 128 bits and then mask the result to 128 bits
+        uint128 lat = uint128(uint256(encoded) >> 128);
+        // Extract longitude by masking the lower 128 bits
+        uint128 lon = uint128(uint256(encoded) & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
+
+        // Convert to signed int128 and then to int256
+        latitude = int256(int128(lat));
+        longitude = int256(int128(lon));
+    }
+
+    function encodeCoordinates(int256 latitude, int256 longitude) public pure returns (bytes32) {
+        int128 lat = int128(latitude);
+        int128 lon = int128(longitude);
+
+        bytes32 encoded;
+
+        assembly {
+            encoded := or(shl(128, lat), and(lon, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))
+        }
+
+        return encoded;
     }
 }
