@@ -3,15 +3,22 @@ import "@nomicfoundation/hardhat-foundry";
 import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-deploy";
 import * as dotenv from "dotenv";
+import "hardhat-abi-exporter";
 
-const pk = process.env.PRIVATE_KEY || "";
-
-console.log(pk);
+const pk = process.env.PRIVATE_KEY_SST;
 
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.24",
+  solidity: {
+    version: "0.8.24",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 999,
+      },
+    },
+  },
   etherscan: {
     apiKey: {
       arbitrumOne: process.env.ETHERSCAN_KEY_ARB || "",
@@ -38,7 +45,7 @@ const config: HardhatUserConfig = {
     sst: {
       chainId: 534351,
       url: "https://sepolia-rpc.scroll.io/",
-      accounts: [pk],
+      // accounts: [pk],
     },
   },
   namedAccounts: {
