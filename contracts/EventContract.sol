@@ -16,6 +16,11 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
     mapping(address => uint256) public eventCountByUser;
     mapping(address => uint256) public userClaimableAmount;
 
+    mapping(uint256 => mapping(address => bool)) public mockValidation; //event id to user to validation status
+
+    //add storage gap
+    uint256[50] private __gap;
+
     function initialize(address _token) public initializer {
         token = IERC20(_token);
         __Ownable_init(msg.sender);
@@ -29,13 +34,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         uint256 penalty,
         bytes32 _location,
         address[] memory _invitees
-    )
-        public
-        // ValidationMode _validationMode,
-        // PenaltyMode _penaltyMode,
-
-        onlyOwner
-    {
+    ) public onlyOwner {
         require(penalty < commitment, "Penalty should be less than commitment");
         eventCount++;
         Event storage newEvent = events[eventCount];
@@ -46,14 +45,11 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         newEvent.isEnded = false;
         newEvent.commitmentRequired = commitment;
         newEvent.location = _location;
-        // newEvent.validationMode = _validationMode;
-        // newEvent.penaltyMode = _penaltyMode;
         inviteUsers(eventCount, _invitees);
 
-        emit EventCreated(eventCount, _name, _regDeadline, _arrivalTime);
+        emit EventCreated(eventCount, _name, _regDeadline, _arrivalTime, _location);
     }
 
-    //function to invite an array of users
     function inviteUsers(uint256 _eventId, address[] memory _invitees) public onlyOwner {
         for (uint256 i; i < _invitees.length; ) {
             inviteUser(_eventId, _invitees[i]);
@@ -72,14 +68,12 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
     }
 
     function acceptInvite(uint256 _eventId) public {
-        //safe transfer commitment amount to contract
         Event storage myEvent = events[_eventId];
         require(myEvent.participantStatus[msg.sender] == UserStatus.Invited, "No invitation found");
         require(block.timestamp <= myEvent.regDeadline, "Registration deadline passed");
 
-        //CEI not implemented
-        token.safeTransferFrom(msg.sender, address(this), events[_eventId].commitmentRequired);
-        userClaimableAmount[msg.sender] += events[_eventId].commitmentRequired;
+        token.safeTransferFrom(msg.sender, address(this), myEvent.commitmentRequired);
+        userClaimableAmount[msg.sender] += myEvent.commitmentRequired;
         myEvent.participantStatus[msg.sender] = UserStatus.Accepted;
         myEvent.participantList.push(msg.sender);
         joinedEvents[msg.sender].push(_eventId);
@@ -89,18 +83,16 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         emit UserAccepted(_eventId, msg.sender);
     }
 
-    //@todo implement chainlink upkeep here
     function checkArrivals(uint256 _eventId) public {
         Event storage myEvent = events[_eventId];
         require(block.timestamp >= myEvent.arrivalTime, "Event has not started");
         require(!myEvent.isEnded, "Event already ended");
 
         for (uint256 i; i < myEvent.participantList.length; ) {
-            bool onTime = validateArrival(_eventId, myEvent.participantList[i]);
+            bool onTime = validateArrivalMock(_eventId, myEvent.participantList[i]);
             if (!onTime) {
                 lateCount[myEvent.participantList[i]]++;
-                // Handle penalty distribution based on penalty mode
-                handlePenalty(_eventId, myEvent.participantList[i]);
+                _handlePenalty(_eventId, myEvent.participantList[i]);
                 myEvent.penalties += myEvent.penalties;
             } else {
                 myEvent.onTimeParticipants.push(myEvent.participantList[i]);
@@ -110,7 +102,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
                 ++i;
             }
         }
-        //distribute the penalty to the ontime participants in claimableAmount
+
         for (uint256 i; i < myEvent.onTimeParticipants.length; ) {
             userClaimableAmount[myEvent.onTimeParticipants[i]] += myEvent.penalties / myEvent.onTimeParticipants.length;
             unchecked {
@@ -123,14 +115,18 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
 
     function validateArrival(uint256 _eventId, address _participant) internal view returns (bool) {
         // Implement validation logic based on validation mode
-        // Example: Chainlink oracle, voting, or NFC validation
         return true;
     }
 
-    function handlePenalty(uint256 _eventId, address _participant) internal {
-        // Implement penalty distribution based on penalty mode
-        // Example: Harsh, Moderate, or Lenient penalty
-        //minus the calimable
+    function validateArrivalMock(uint256 _eventId, address _participant) public view returns (bool) {
+        return mockValidation[_eventId][_participant];
+    }
+
+    function mockValidationTrue(uint256 _eventId, address _participant) public {
+        mockValidation[_eventId][_participant] = true;
+    }
+
+    function _handlePenalty(uint256 _eventId, address _participant) internal {
         userClaimableAmount[_participant] -= events[_eventId].penalties;
     }
 
@@ -142,20 +138,18 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         return lateCount[_user];
     }
 
-    //claim the claimable amount
     function claim() public {
         require(userClaimableAmount[msg.sender] > 0, "No claimable amount");
+        uint256 amount = userClaimableAmount[msg.sender];
         userClaimableAmount[msg.sender] = 0;
-        token.safeTransfer(msg.sender, userClaimableAmount[msg.sender]);
+        token.safeTransfer(msg.sender, amount);
+        emit Claimed(msg.sender, amount);
     }
 
     function decodeCoordinates(bytes32 encoded) public pure returns (int256 latitude, int256 longitude) {
-        // Extract latitude by shifting right 128 bits and then mask the result to 128 bits
         uint128 lat = uint128(uint256(encoded) >> 128);
-        // Extract longitude by masking the lower 128 bits
         uint128 lon = uint128(uint256(encoded) & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
 
-        // Convert to signed int128 and then to int256
         latitude = int256(int128(lat));
         longitude = int256(int128(lon));
     }

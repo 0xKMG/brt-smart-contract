@@ -33,14 +33,17 @@ interface IEventContract {
         NFC
     }
 
-    event EventCreated(
-        uint256 eventId,
-        string name,
-        uint256 regDeadline,
-        uint256 arrivalTime
-    );
+   event EventCreated(
+    uint256 eventId,
+    string name,
+    uint256 regDeadline,
+    uint256 arrivalTime,
+    bytes32 location
+);
+
 
     event UserInvited(uint256 eventId, address invitee);
     event UserAccepted(uint256 eventId, address participant);
     event UserCheckedArrival(uint256 eventId, address participant, bool onTime);
+    event Claimed(address indexed claimer, uint256 amount);
 }

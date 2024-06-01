@@ -1,52 +1,40 @@
-# Sample Hardhat Project
-
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.ts
-```
-
-# EventContract
+# EventContract Project
 
 ## Overview
 
-`EventContract` is a smart contract designed for event organizers to manage event participants. It allows organizers to invite participants, enforce penalties for late arrivals, and handle user deposits. The contract is upgradeable using OpenZeppelin's upgradeable contract library.
+`EventContract` is a smart contract designed for event organizers to manage participants. It allows organizers to invite participants, enforce penalties for late arrivals, and handle user deposits. The contract is upgradeable using OpenZeppelin's upgradeable contract library.
 
 ## Installation
 
-To use this contract, you need to install the necessary dependencies:
+To deploy this project, install all dependencies
 
 ```sh
-npm install @openzeppelin/contracts-upgradeable
+npm install
 ```
 
 ## Contract Functions
 
-### `initialize()`
+### `initialize(address _token)`
 
-Initializes the contract and sets the contract owner. This function is called only once during contract deployment.
+Initializes the contract with the token address and sets the contract owner. This function is called only once during deployment.
 
 **Modifiers:**
 
 - `initializer`
 
-### `createEvent(string memory _name, uint256 _regDeadline, uint256 _arrivalTime, ValidationMode _validationMode, PenaltyMode _penaltyMode) public onlyOwner`
+### `createEvent(string memory _name, uint256 _regDeadline, uint256 _arrivalTime, uint256 commitment, uint256 penalty, bytes32 _location, address[] memory _invitees) public onlyOwner`
 
-Creates a new event with the specified parameters.
+Creates a new event with specified parameters.
 
 **Parameters:**
 
 - `_name`: The name of the event.
-- `_regDeadline`: The registration deadline for the event.
-- `_arrivalTime`: The scheduled arrival time for the event.
-- `_validationMode`: The mode of validation for arrival (Chainlink, Vote, NFC).
-- `_penaltyMode`: The mode of penalty enforcement (Harsh, Moderate, Lenient).
+- `_regDeadline`: The registration deadline.
+- `_arrivalTime`: The scheduled arrival time.
+- `commitment`: The amount of commitment required.
+- `penalty`: The penalty for being late.
+- `_location`: The encoded location of the event.
+- `_invitees`: An array of addresses to invite.
 
 **Modifiers:**
 
@@ -54,7 +42,7 @@ Creates a new event with the specified parameters.
 
 **Emits:**
 
-- `EventCreated(uint256 eventId, string name, uint256 regDeadline, uint256 arrivalTime)`
+- `EventCreated(uint256 eventId, string name, uint256 regDeadline, uint256 arrivalTime, bytes32 location)`
 
 ### `inviteUser(uint256 _eventId, address _invitee) public onlyOwner`
 
@@ -73,9 +61,9 @@ Invites a user to participate in an event.
 
 - `UserInvited(uint256 eventId, address invitee)`
 
-### `acceptInvite(uint256 _eventId) public payable`
+### `acceptInvite(uint256 _eventId) public`
 
-Allows an invited user to accept the invitation and pay the deposit to join the event.
+Allows an invited user to accept the invitation and join the event.
 
 **Parameters:**
 
@@ -85,24 +73,18 @@ Allows an invited user to accept the invitation and pay the deposit to join the 
 
 - The caller must be invited.
 - The current timestamp must be before the registration deadline.
-- The correct deposit amount must be sent with the transaction.
 
 **Emits:**
 
 - `UserAccepted(uint256 eventId, address participant)`
 
-### `checkArrival(uint256 _eventId, address _participant) public onlyOwner`
+### `checkArrivals(uint256 _eventId) public`
 
-Checks whether a participant arrived on time for the event and applies penalties if necessary.
+Checks whether participants arrived on time for the event and applies penalties if necessary.
 
 **Parameters:**
 
 - `_eventId`: The ID of the event.
-- `_participant`: The address of the participant to be checked.
-
-**Modifiers:**
-
-- `onlyOwner`
 
 **Emits:**
 
@@ -110,7 +92,7 @@ Checks whether a participant arrived on time for the event and applies penalties
 
 ### `validateArrival(uint256 _eventId, address _participant) internal view returns (bool)`
 
-Validates the arrival of a participant. This is a placeholder function to be implemented with the appropriate logic for arrival validation.
+Validates the arrival of a participant.
 
 **Parameters:**
 
@@ -123,7 +105,7 @@ Validates the arrival of a participant. This is a placeholder function to be imp
 
 ### `handlePenalty(uint256 _eventId, address _participant) internal`
 
-Handles the distribution of penalties to participants who did not arrive on time. This is a placeholder function to be implemented with the appropriate logic for penalty distribution.
+Handles the distribution of penalties to participants who did not arrive on time.
 
 **Parameters:**
 
@@ -154,9 +136,43 @@ Returns the number of times a user was late for events.
 
 - `uint256`: The count of late occurrences.
 
+### `claim() public`
+
+Allows a user to claim their claimable amount after an event.
+
+**Requirements:**
+
+- The caller must have a claimable amount.
+
+### `decodeCoordinates(bytes32 encoded) public pure returns (int256 latitude, int256 longitude)`
+
+Decodes encoded coordinates.
+
+**Parameters:**
+
+- `encoded`: The encoded coordinates.
+
+**Returns:**
+
+- `latitude`: The latitude as `int256`.
+- `longitude`: The longitude as `int256`.
+
+### `encodeCoordinates(int256 latitude, int256 longitude) public pure returns (bytes32)`
+
+Encodes coordinates.
+
+**Parameters:**
+
+- `latitude`: The latitude as `int256`.
+- `longitude`: The longitude as `int256`.
+
+**Returns:**
+
+- `bytes32`: The encoded coordinates.
+
 ## Events
 
-### `EventCreated(uint256 eventId, string name, uint256 regDeadline, uint256 arrivalTime)`
+### `EventCreated(uint256 eventId, string name, uint256 regDeadline, uint256 arrivalTime, bytes32 location)`
 
 Emitted when a new event is created.
 
@@ -164,8 +180,9 @@ Emitted when a new event is created.
 
 - `eventId`: The ID of the event.
 - `name`: The name of the event.
-- `regDeadline`: The registration deadline for the event.
-- `arrivalTime`: The scheduled arrival time for the event.
+- `regDeadline`: The registration deadline.
+- `arrivalTime`: The scheduled arrival time.
+- `location`: The encoded location of the event.
 
 ### `UserInvited(uint256 eventId, address invitee)`
 
