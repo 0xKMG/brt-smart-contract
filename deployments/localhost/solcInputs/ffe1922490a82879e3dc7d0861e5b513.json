@@ -90,11 +90,11 @@
     }
   },
   "settings": {
-    "evmVersion": "paris",
     "optimizer": {
-      "enabled": false,
-      "runs": 200
+      "enabled": true,
+      "runs": 999
     },
+    "evmVersion": "paris",
     "outputSelection": {
       "*": {
         "*": [

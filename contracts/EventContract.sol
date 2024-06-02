@@ -21,6 +21,8 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
     //add storage gap
     uint256[50] private __gap;
 
+    mapping(address => uint256[]) public invitedEvents;
+
     function initialize(address _token) public initializer {
         token = IERC20(_token);
         __Ownable_init(msg.sender);
@@ -45,7 +47,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         newEvent.isEnded = false;
         newEvent.commitmentRequired = commitment;
         newEvent.location = _location;
-        _acceptInvite(newEvent.eventId);
+        // _acceptInvite(newEvent.eventId);
         inviteUsers(eventCount, _invitees);
 
         emit EventCreated(eventCount, _name, _regDeadline, _arrivalTime, _location);
@@ -64,7 +66,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         Event storage myEvent = events[_eventId];
         require(myEvent.participantStatus[_invitee] == UserStatus.Invited, "User already invited");
         myEvent.participantStatus[_invitee] = UserStatus.Invited;
-
+        invitedEvents[_invitee].push(_eventId);
         emit UserInvited(_eventId, _invitee);
     }
 
