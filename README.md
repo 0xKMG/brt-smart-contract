@@ -5,6 +5,11 @@
 
 `BeRightThereV1` is a smart contract solution designed to promote punctuality through behavioral economics and gamification. This project aims to address the common issue of lateness in social gatherings by turning punctuality into a playful bet, incentivizing users to arrive on time through friendly wagers. Built on the Scroll testnet, this version leverages simple smart contract logic to manage event creation, participant tracking, and bet distribution without the use of Chainlink oracles.
 
+## How it Works 
+
+![How it Works](https://github.com/0xKMG/brt-smart-contract/assets/83229800/14603209-8f39-4afb-9b88-ab317eb08d67)
+
+
 ## Installation
 
 To deploy this project, install all dependencies:
