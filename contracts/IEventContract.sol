@@ -18,6 +18,22 @@ interface IEventContract {
         ValidationMode validationMode;
         PenaltyMode penaltyMode;
     }
+
+    struct EventView {
+    uint256 eventId;
+    string name;
+    uint256 regDeadline;
+    uint256 arrivalTime;
+    bool isEnded;
+    address[] participantList;
+    address[] onTimeParticipants;
+    uint256 penalties;
+    uint256 commitmentRequired;
+    uint256 totalCommitment;
+    bytes32 location;
+}
+
+
     enum UserStatus {
         Invited,
         Accepted

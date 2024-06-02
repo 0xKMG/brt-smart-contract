@@ -475,9 +475,66 @@
     "name": "getInvitedEvents",
     "outputs": [
       {
-        "internalType": "uint256[]",
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "eventId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "regDeadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "arrivalTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isEnded",
+            "type": "bool"
+          },
+          {
+            "internalType": "address[]",
+            "name": "participantList",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address[]",
+            "name": "onTimeParticipants",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "penalties",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRequired",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalCommitment",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "location",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct IEventContract.EventView[]",
         "name": "",
-        "type": "uint256[]"
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",

@@ -196,8 +196,29 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         activeEvents = newActiveEvents;
     }
 
-    //return a list of invitedEvents
-    function getInvitedEvents(address _user) public view returns (uint256[] memory) {
-        return invitedEvents[_user];
+    function getInvitedEvents(address _user) public view returns (EventView[] memory) {
+        uint256[] memory eventIds = invitedEvents[_user];
+        uint256 length = eventIds.length;
+
+        EventView[] memory eventsView = new EventView[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            Event storage eventDetails = events[eventIds[i]];
+            eventsView[i] = EventView({
+                eventId: eventDetails.eventId,
+                name: eventDetails.name,
+                regDeadline: eventDetails.regDeadline,
+                arrivalTime: eventDetails.arrivalTime,
+                isEnded: eventDetails.isEnded,
+                participantList: eventDetails.participantList,
+                onTimeParticipants: eventDetails.onTimeParticipants,
+                penalties: eventDetails.penalties,
+                commitmentRequired: eventDetails.commitmentRequired,
+                totalCommitment: eventDetails.totalCommitment,
+                location: eventDetails.location
+            });
+        }
+
+        return eventsView;
     }
 }
