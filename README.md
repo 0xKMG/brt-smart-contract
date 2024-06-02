@@ -3,7 +3,7 @@
 
 ## Overview
 
-`BeRightThereV1` is a smart contract designed for event organizers to manage participants, invite users, enforce penalties for late arrivals, and handle user deposits. The contract is upgradeable using OpenZeppelin's upgradeable contract library. This version does not use Chainlink and is deployed on the Scroll testnet.
+`BeRightThereV1` is a smart contract solution designed to promote punctuality through behavioral economics and gamification. This project aims to address the common issue of lateness in social gatherings by turning punctuality into a playful bet, incentivizing users to arrive on time through friendly wagers. Built on the Scroll testnet, this version leverages simple smart contract logic to manage event creation, participant tracking, and bet distribution without the use of Chainlink oracles.
 
 ## Installation
 
