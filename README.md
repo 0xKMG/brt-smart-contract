@@ -1,4 +1,5 @@
-# BeRightThereV1 Smart Contract
+# BeRightThereV1
+![Be Right There Thumbnail](https://github.com/0xKMG/brt-smart-contract/assets/83229800/9082006f-f392-4a85-ae89-bdc741ca2103)
 
 ## Overview
 
