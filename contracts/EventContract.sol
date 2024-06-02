@@ -40,7 +40,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         uint256 penalty,
         bytes32 _location,
         address[] memory _invitees
-    ) public onlyOwner {
+    ) public {
         require(penalty < commitment, "Penalty should be less than commitment");
         eventCount++;
         Event storage newEvent = events[eventCount];
@@ -124,7 +124,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         return block.timestamp >= myEvent.arrivalTime - 600 && block.timestamp <= myEvent.arrivalTime + 600;
     }
 
-    //will be trigger automatically by the backend
+    //will be trigger automatically in production
     function checkArrivals(uint256 _eventId) public {
         Event storage myEvent = events[_eventId];
         require(block.timestamp >= myEvent.arrivalTime, "Event has not started");
@@ -161,10 +161,12 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         return true;
     }
 
+    //@note currently in use
     function validateArrivalMock(uint256 _eventId, address _participant) public view returns (bool) {
         return mockValidation[_eventId][_participant];
     }
 
+    //@note currently in use
     function mockValidationTrue(uint256 _eventId, address _participant) public {
         require(_isValidationReady(_eventId), "Validation not ready");
         //require isInvited
