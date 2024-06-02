@@ -65,4 +65,5 @@ interface IBeRightThere {
     event UserAccepted(uint256 eventId, address participant);
     event UserCheckedArrival(uint256 eventId, address participant, bool onTime);
     event Claimed(address indexed claimer, uint256 amount);
+    event ChainlinkKeeperSet(address keeper, address functionsConsumer);
 }
