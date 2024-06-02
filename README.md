@@ -10,6 +10,12 @@
 ![How it Works](https://github.com/0xKMG/brt-smart-contract/assets/83229800/14603209-8f39-4afb-9b88-ab317eb08d67)
 
 
+## Deployed Addresses 
+
+BeRightThereV1(formerly:EventContract): https://sepolia.scrollscan.com/address/0xfcc5aff8946aa3a8015959bc468255489fcad241
+
+Mock Token For Demo: https://sepolia.scrollscan.com/address/0xf8bc58f8aef773abba1019e8aa048fc5af876a38
+
 ## Installation
 
 To deploy this project, install all dependencies:
