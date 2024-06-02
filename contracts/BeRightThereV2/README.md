@@ -2,7 +2,7 @@
 
 ## Overview
 
-`BeRightThereV2` is an advanced smart contract designed for event organizers to manage participants. It incorporates Chainlink Automation and Chainlink Functions to handle event validations and automation seamlessly. This contract enables organizers to invite users, enforce penalties for late arrivals, and manage user deposits, leveraging Chainlink's decentralized services.
+`BeRightThereV2` builds on the foundation of V1 by integrating Chainlink Automation and Chainlink Functions to enhance the reliability and automation of event management and participant verification. This version aims to provide a more robust solution by leveraging decentralized technologies to validate user locations and automate key processes, ensuring a seamless experience for users.
 
 ## Installation
 
