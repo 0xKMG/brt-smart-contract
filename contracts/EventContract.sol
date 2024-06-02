@@ -59,21 +59,25 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         emit EventCreated(eventCount, _name, _regDeadline, _arrivalTime, _location);
     }
 
-    function inviteUsers(uint256 _eventId, address[] memory _invitees) public onlyOwner {
-        for (uint256 i; i < _invitees.length; ) {
-            inviteUser(_eventId, _invitees[i]);
-            unchecked {
-                ++i;
-            }
-        }
+    function decodeCoordinates(bytes32 encoded) public pure returns (int256 latitude, int256 longitude) {
+        uint128 lat = uint128(uint256(encoded) >> 128);
+        uint128 lon = uint128(uint256(encoded) & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
+
+        latitude = int256(int128(lat));
+        longitude = int256(int128(lon));
     }
 
-    function inviteUser(uint256 _eventId, address _invitee) public onlyOwner {
-        Event storage myEvent = events[_eventId];
-        require(myEvent.participantStatus[_invitee] == UserStatus.Invited, "User already invited");
-        myEvent.participantStatus[_invitee] = UserStatus.Invited;
-        invitedEvents[_invitee].push(_eventId);
-        emit UserInvited(_eventId, _invitee);
+    function encodeCoordinates(int256 latitude, int256 longitude) public pure returns (bytes32) {
+        int128 lat = int128(latitude);
+        int128 lon = int128(longitude);
+
+        bytes32 encoded;
+
+        assembly {
+            encoded := or(shl(128, lat), and(lon, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))
+        }
+
+        return encoded;
     }
 
     function acceptInvite(uint256 _eventId) public {
@@ -84,6 +88,22 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         _acceptInvite(_eventId);
 
         emit UserAccepted(_eventId, msg.sender);
+    }
+
+    function inviteUsers(uint256 _eventId, address[] memory _invitees) public onlyOwner {
+        for (uint256 i; i < _invitees.length; ) {
+            inviteUser(_eventId, _invitees[i]);
+            unchecked {
+                ++i;
+            }
+        }
+    }
+    function inviteUser(uint256 _eventId, address _invitee) public onlyOwner {
+        Event storage myEvent = events[_eventId];
+        require(myEvent.participantStatus[_invitee] == UserStatus.Invited, "User already invited");
+        myEvent.participantStatus[_invitee] = UserStatus.Invited;
+        invitedEvents[_invitee].push(_eventId);
+        emit UserInvited(_eventId, _invitee);
     }
 
     function _acceptInvite(uint256 _eventId) internal {
@@ -98,6 +118,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         eventCountByUser[msg.sender]++;
     }
 
+//will be trigger automatically by the backend
     function checkArrivals(uint256 _eventId) public {
         Event storage myEvent = events[_eventId];
         require(block.timestamp >= myEvent.arrivalTime, "Event has not started");
@@ -130,7 +151,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
     }
 
     function validateArrival(uint256 _eventId, address _participant) internal view returns (bool) {
-        // Implement validation logic based on validation mode
+        // Implement validation logic
         return true;
     }
 
@@ -164,27 +185,6 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         userTotalClaimed[msg.sender] += amount;
         token.safeTransfer(msg.sender, amount);
         emit Claimed(msg.sender, amount);
-    }
-
-    function decodeCoordinates(bytes32 encoded) public pure returns (int256 latitude, int256 longitude) {
-        uint128 lat = uint128(uint256(encoded) >> 128);
-        uint128 lon = uint128(uint256(encoded) & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
-
-        latitude = int256(int128(lat));
-        longitude = int256(int128(lon));
-    }
-
-    function encodeCoordinates(int256 latitude, int256 longitude) public pure returns (bytes32) {
-        int128 lat = int128(latitude);
-        int128 lon = int128(longitude);
-
-        bytes32 encoded;
-
-        assembly {
-            encoded := or(shl(128, lat), and(lon, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))
-        }
-
-        return encoded;
     }
 
     //function to delete a speicific event in activeEvents array, make a new array with all active events
