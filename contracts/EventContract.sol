@@ -195,4 +195,9 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         }
         activeEvents = newActiveEvents;
     }
+
+    //return a list of invitedEvents
+    function getInvitedEvents(address _user) public view returns (uint256[] memory) {
+        return invitedEvents[_user];
+    }
 }
