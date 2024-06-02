@@ -1,8 +1,8 @@
-# BeRightThereV1 Smart Contract
+# BeRightThereV2 Smart Contract
 
 ## Overview
 
-`BeRightThereV1` is a smart contract designed for event organizers to manage participants, invite users, enforce penalties for late arrivals, and handle user deposits. The contract is upgradeable using OpenZeppelin's upgradeable contract library. This version does not use Chainlink and is deployed on the Scroll testnet.
+`BeRightThereV2` is an advanced smart contract designed for event organizers to manage participants. It incorporates Chainlink Automation and Chainlink Functions to handle event validations and automation seamlessly. This contract enables organizers to invite users, enforce penalties for late arrivals, and manage user deposits, leveraging Chainlink's decentralized services.
 
 ## Installation
 
@@ -14,13 +14,38 @@ npm install
 
 ## Contract Functions
 
-### `initialize(address _token)`
+### `initialize`
+
+```solidity
+function initialize(address _token) public initializer
+```
 
 Initializes the contract with the token address and sets the contract owner. This function is called only once during deployment.
 
 **Modifiers:**
 
 - `initializer`
+
+### `setChainlinkConfig`
+
+```solidity
+function setChainlinkConfig(address _chainlinkKeeper, address _functionsConsumer) public onlyOwner
+```
+
+Sets the Chainlink keeper and functions consumer addresses.
+
+**Parameters:**
+
+- `_chainlinkKeeper`: The address of the Chainlink keeper.
+- `_functionsConsumer`: The address of the functions consumer.
+
+**Modifiers:**
+
+- `onlyOwner`
+
+**Emits:**
+
+- `ChainlinkKeeperSet(address chainlinkKeeper, address functionsConsumer)`
 
 ### `createEvent`
 
@@ -33,7 +58,7 @@ function createEvent(
     uint256 penalty,
     bytes32 _location,
     address[] memory _invitees
-) public onlyOwner
+) public
 ```
 
 Creates a new event with specified parameters.
@@ -47,10 +72,6 @@ Creates a new event with specified parameters.
 - `penalty`: The penalty for being late.
 - `_location`: The encoded location of the event.
 - `_invitees`: An array of addresses to invite.
-
-**Modifiers:**
-
-- `onlyOwner`
 
 **Emits:**
 
@@ -121,15 +142,64 @@ Allows an invited user to accept the invitation and join the event.
 function checkArrivals(uint256 _eventId) public
 ```
 
-Checks whether participants arrived on time for the event and applies penalties if necessary.
+Checks whether participants arrived on time for the event and triggers validation through Chainlink Functions.
 
 **Parameters:**
 
 - `_eventId`: The ID of the event.
 
-**Emits:**
+### `checkUpkeep`
 
-- `UserCheckedArrival(uint256 eventId, address participant, bool onTime)`
+```solidity
+function checkUpkeep(bytes calldata data) external view override returns (bool upkeepNeeded, bytes memory performData)
+```
+
+Checks if upkeep is needed.
+
+**Parameters:**
+
+- `data`: The data to check.
+
+**Returns:**
+
+- `upkeepNeeded`: A boolean indicating if upkeep is needed.
+- `performData`: The data to perform the upkeep.
+
+### `performUpkeep`
+
+```solidity
+function performUpkeep(bytes calldata performData) external override
+```
+
+Performs the upkeep.
+
+**Parameters:**
+
+- `performData`: The data to perform the upkeep.
+
+### `processValidationResponse`
+
+```solidity
+function processValidationResponse(uint256 eventId) public
+```
+
+Processes the validation response for an event.
+
+**Parameters:**
+
+- `eventId`: The ID of the event.
+
+### `distributeRewards`
+
+```solidity
+function distributeRewards(uint256 eventId) internal
+```
+
+Distributes rewards to participants who arrived on time.
+
+**Parameters:**
+
+- `eventId`: The ID of the event.
 
 ### `validateArrival`
 
@@ -148,81 +218,6 @@ Validates the arrival of a participant.
 
 - `bool`: Whether the participant arrived on time.
 
-### `validateArrivalMock`
-
-```solidity
-function validateArrivalMock(uint256 _eventId, address _participant) public view returns (bool)
-```
-
-Mocks the validation of a participant's arrival.
-
-**Parameters:**
-
-- `_eventId`: The ID of the event.
-- `_participant`: The address of the participant.
-
-**Returns:**
-
-- `bool`: Mock validation status.
-
-### `mockValidationTrue`
-
-```solidity
-function mockValidationTrue(uint256 _eventId, address _participant) public
-```
-
-Mocks setting a participant's validation status to true.
-
-**Parameters:**
-
-- `_eventId`: The ID of the event.
-- `_participant`: The address of the participant.
-
-### `handlePenalty`
-
-```solidity
-function _handlePenalty(uint256 _eventId, address _participant) internal
-```
-
-Handles the distribution of penalties to participants who did not arrive on time.
-
-**Parameters:**
-
-- `_eventId`: The ID of the event.
-- `_participant`: The address of the participant.
-
-### `getUserJoinedEvents`
-
-```solidity
-function getUserJoinedEvents(address _user) public view returns (uint256[] memory)
-```
-
-Returns a list of event IDs that the user has joined.
-
-**Parameters:**
-
-- `_user`: The address of the user.
-
-**Returns:**
-
-- `uint256[]`: An array of event IDs.
-
-### `getUserLateCount`
-
-```solidity
-function getUserLateCount(address _user) public view returns (uint256)
-```
-
-Returns the number of times a user was late for events.
-
-**Parameters:**
-
-- `_user`: The address of the user.
-
-**Returns:**
-
-- `uint256`: The count of late occurrences.
-
 ### `claim`
 
 ```solidity
@@ -235,39 +230,43 @@ Allows a user to claim their claimable amount after an event.
 
 - The caller must have a claimable amount.
 
-### `decodeCoordinates`
+**Emits:**
+
+- `Claimed(address user, uint256 amount)`
+
+### Helper Functions
+
+### `uint2str`
 
 ```solidity
-function decodeCoordinates(bytes32 encoded) public pure returns (int256 latitude, int256 longitude)
+function uint2str(uint256 _i) internal pure returns (string memory)
 ```
 
-Decodes encoded coordinates.
+Converts a `uint256` to a `string`.
 
 **Parameters:**
 
-- `encoded`: The encoded coordinates.
+- `_i`: The `uint256` value to convert.
 
 **Returns:**
 
-- `latitude`: The latitude as `int256`.
-- `longitude`: The longitude as `int256`.
+- `string`: The string representation of the `uint256` value.
 
-### `encodeCoordinates`
+### `addressToString`
 
 ```solidity
-function encodeCoordinates(int256 latitude, int256 longitude) public pure returns (bytes32)
+function addressToString(address _addr) internal pure returns (string memory)
 ```
 
-Encodes coordinates.
+Converts an address to a string.
 
 **Parameters:**
 
-- `latitude`: The latitude as `int256`.
-- `longitude`: The longitude as `int256`.
+- `_addr`: The address to convert.
 
 **Returns:**
 
-- `bytes32`: The encoded coordinates.
+- `string`: The string representation of the address.
 
 ## Events
 

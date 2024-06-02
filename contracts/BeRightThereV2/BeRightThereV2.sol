@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import { FunctionsConsumerDecoder } from "./FunctionsConsumerDecoder.sol";
+import { FunctionsConsumerDecoder } from "../FunctionsConsumerDecoder.sol";
 import { AutomationCompatibleInterface } from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import { IBeRightThere } from "./IBeRightThere.sol";
+import { IBeRightThere } from "../IBeRightThere.sol";
 
 //This is an implementation with Chainlink Automation and Chainlink Functions
 contract BeRightThereV2 is AutomationCompatibleInterface, IBeRightThere, Initializable, OwnableUpgradeable {

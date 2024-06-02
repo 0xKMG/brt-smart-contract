@@ -8,7 +8,7 @@ import { IBeRightThere } from "./IBeRightThere.sol";
 
 //This is an implementation without using Chainlink, deployed on scroll testnet. 
 
-contract EventContract is IBeRightThere, Initializable, OwnableUpgradeable {
+contract BeRightThereV1 is IBeRightThere, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     uint256 public eventCount;
     IERC20 public token; // based token for penalty
