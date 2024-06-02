@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-interface IEventContract {
+interface IBeRightThere {
     struct Event {
         uint256 eventId;
         string name;
@@ -14,27 +14,35 @@ interface IEventContract {
         uint256 penalties;
         uint256 commitmentRequired;
         uint256 totalCommitment;
-        bytes32 location;  // Encoded latitude and longitude
+        bytes32 location; // Encoded latitude and longitude
         ValidationMode validationMode;
         PenaltyMode penaltyMode;
         uint256 penaltyRequired;
     }
 
     struct EventView {
-    uint256 eventId;
-    string name;
-    uint256 regDeadline;
-    uint256 arrivalTime;
-    bool isEnded;
-    address[] participantList;
-    address[] onTimeParticipants;
-    uint256 penalties;
-    uint256 commitmentRequired;
-    uint256 totalCommitment;
-    bytes32 location;
-    uint256 penaltyRequired;
-}
+        uint256 eventId;
+        string name;
+        uint256 regDeadline;
+        uint256 arrivalTime;
+        bool isEnded;
+        address[] participantList;
+        address[] onTimeParticipants;
+        uint256 penalties;
+        uint256 commitmentRequired;
+        uint256 totalCommitment;
+        bytes32 location;
+        uint256 penaltyRequired;
+    }
 
+    struct UserInfo {
+        uint256 lateCount;
+        uint256 eventCountByUser;
+        uint256 userClaimableAmount;
+        uint256 userTotalContribution;
+        uint256 userTotalClaimed;
+        uint256 userTotalPenalties;
+    }
 
     enum UserStatus {
         Invited,
@@ -51,14 +59,7 @@ interface IEventContract {
         NFC
     }
 
-   event EventCreated(
-    uint256 eventId,
-    string name,
-    uint256 regDeadline,
-    uint256 arrivalTime,
-    bytes32 location
-);
-
+    event EventCreated(uint256 eventId, string name, uint256 regDeadline, uint256 arrivalTime, bytes32 location);
 
     event UserInvited(uint256 eventId, address invitee);
     event UserAccepted(uint256 eventId, address participant);
