@@ -251,7 +251,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
     }
 
     function getUserEvents(address _user, bool isEnded, bool isAccepted) public view returns (EventView[] memory) {
-        uint256[] memory eventIds = joinedEvents[_user];
+        uint256[] memory eventIds = invitedEvents[_user];
         uint256 length = eventIds.length;
 
         // Temporary storage for filtering events
