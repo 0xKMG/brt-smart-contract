@@ -22,6 +22,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
     uint256[50] private __gap;
 
     mapping(address => uint256[]) public invitedEvents;
+    uint256[] public activeEvents;
 
     function initialize(address _token) public initializer {
         token = IERC20(_token);
@@ -47,6 +48,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         newEvent.isEnded = false;
         newEvent.commitmentRequired = commitment;
         newEvent.location = _location;
+        activeEvents.push(eventCount);
         // _acceptInvite(newEvent.eventId);
         inviteUsers(eventCount, _invitees);
 
@@ -119,6 +121,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         }
 
         myEvent.isEnded = true;
+        _deleteEvent(_eventId);
     }
 
     function validateArrival(uint256 _eventId, address _participant) internal view returns (bool) {
@@ -173,5 +176,23 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         }
 
         return encoded;
+    }
+
+    //function to delete a speicific event in activeEvents array, make a new array with all active events
+    function _deleteEvent(uint256 _eventId) internal {
+        uint256[] memory newActiveEvents = new uint256[](activeEvents.length - 1);
+        uint256 j;
+        for (uint256 i; i < activeEvents.length; ) {
+            if (activeEvents[i] != _eventId) {
+                newActiveEvents[j] = activeEvents[i];
+                unchecked {
+                    ++j;
+                }
+            }
+            unchecked {
+                ++i;
+            }
+        }
+        activeEvents = newActiveEvents;
     }
 }
