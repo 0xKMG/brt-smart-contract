@@ -459,6 +459,11 @@
         "internalType": "enum IEventContract.PenaltyMode",
         "name": "penaltyMode",
         "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "penaltyRequired",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -530,6 +535,11 @@
             "internalType": "bytes32",
             "name": "location",
             "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "penaltyRequired",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IEventContract.EventView[]",
@@ -606,6 +616,11 @@
             "internalType": "bytes32",
             "name": "location",
             "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "penaltyRequired",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IEventContract.EventView[]",
@@ -730,6 +745,11 @@
             "internalType": "bytes32",
             "name": "location",
             "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "penaltyRequired",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IEventContract.EventView[]",

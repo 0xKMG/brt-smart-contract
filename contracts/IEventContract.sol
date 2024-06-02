@@ -17,6 +17,7 @@ interface IEventContract {
         bytes32 location;  // Encoded latitude and longitude
         ValidationMode validationMode;
         PenaltyMode penaltyMode;
+        uint256 penaltyRequired;
     }
 
     struct EventView {
@@ -31,6 +32,7 @@ interface IEventContract {
     uint256 commitmentRequired;
     uint256 totalCommitment;
     bytes32 location;
+    uint256 penaltyRequired;
 }
 
 

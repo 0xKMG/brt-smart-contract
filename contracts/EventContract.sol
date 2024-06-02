@@ -52,6 +52,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         newEvent.commitmentRequired = commitment;
         newEvent.location = _location;
         activeEvents.push(eventCount);
+        newEvent.penaltyRequired = penalty;
         // _acceptInvite(newEvent.eventId);
         inviteUsers(eventCount, _invitees);
 
@@ -107,7 +108,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
             if (!onTime) {
                 lateCount[myEvent.participantList[i]]++;
                 _handlePenalty(_eventId, myEvent.participantList[i]);
-                myEvent.penalties += myEvent.penalties;
+                myEvent.penalties += myEvent.penaltyRequired;
             } else {
                 myEvent.onTimeParticipants.push(myEvent.participantList[i]);
             }
@@ -144,8 +145,8 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
     }
 
     function _handlePenalty(uint256 _eventId, address _participant) internal {
-        userClaimableAmount[_participant] -= events[_eventId].penalties;
-        userTotalPenalties[_participant] += events[_eventId].penalties;
+        userClaimableAmount[_participant] -= events[_eventId].penaltyRequired;
+        userTotalPenalties[_participant] += events[_eventId].penaltyRequired;
     }
 
     function getUserJoinedEvents(address _user) public view returns (uint256[] memory) {
@@ -223,7 +224,8 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
                 penalties: eventDetails.penalties,
                 commitmentRequired: eventDetails.commitmentRequired,
                 totalCommitment: eventDetails.totalCommitment,
-                location: eventDetails.location
+                location: eventDetails.location,
+                penaltyRequired: eventDetails.penaltyRequired
             });
         }
 
@@ -250,7 +252,8 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
                     penalties: eventDetails.penalties,
                     commitmentRequired: eventDetails.commitmentRequired,
                     totalCommitment: eventDetails.totalCommitment,
-                    location: eventDetails.location
+                    location: eventDetails.location,
+                    penaltyRequired: eventDetails.penaltyRequired
                 });
             }
         }
@@ -314,7 +317,8 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
                 penalties: eventDetails.penalties,
                 commitmentRequired: eventDetails.commitmentRequired,
                 totalCommitment: eventDetails.totalCommitment,
-                location: eventDetails.location
+                location: eventDetails.location,
+                penaltyRequired: eventDetails.penaltyRequired
             });
     }
 
