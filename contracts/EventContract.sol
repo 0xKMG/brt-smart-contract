@@ -98,6 +98,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
             }
         }
     }
+
     function inviteUser(uint256 _eventId, address _invitee) public onlyOwner {
         Event storage myEvent = events[_eventId];
         require(myEvent.participantStatus[_invitee] == UserStatus.Invited, "User already invited");
@@ -118,7 +119,12 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         eventCountByUser[msg.sender]++;
     }
 
-//will be trigger automatically by the backend
+    function _isValidationReady(uint256 _eventId) internal view returns (bool) {
+        Event storage myEvent = events[_eventId];
+        return block.timestamp >= myEvent.arrivalTime - 600 && block.timestamp <= myEvent.arrivalTime + 600;
+    }
+
+    //will be trigger automatically by the backend
     function checkArrivals(uint256 _eventId) public {
         Event storage myEvent = events[_eventId];
         require(block.timestamp >= myEvent.arrivalTime, "Event has not started");
@@ -277,7 +283,9 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
             } else if (isAccepted && isEnded && _isAcceptedAndEnded(eventDetails, _user)) {
                 tempEventsView[count] = _createEventView(eventDetails);
                 count++;
-            } else if (!isAccepted && !isEnded && _isNotAcceptedAndNotEnded(eventDetails, _user)) {
+            } else if (
+                !isAccepted && !isEnded && _isNotAcceptedAndNotEnded(eventDetails, _user) && eventDetails.regDeadline > block.timestamp
+            ) {
                 tempEventsView[count] = _createEventView(eventDetails);
                 count++;
             }
@@ -332,12 +340,6 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
             }
         }
         return ready;
-    }
-
-    //@todo without hardcode
-    function _isValidationReady(uint256 _eventId) internal view returns (bool) {
-        Event storage myEvent = events[_eventId];
-        return block.timestamp >= myEvent.arrivalTime - 600 && block.timestamp <= myEvent.arrivalTime + 600;
     }
 
     function getUserContribution(address _user) public view returns (uint256) {
