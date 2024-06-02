@@ -134,6 +134,8 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
     }
 
     function mockValidationTrue(uint256 _eventId, address _participant) public {
+        require(_isValidationReady(_eventId), "Validation not ready");
+        //require isInvited
         mockValidation[_eventId][_participant] = true;
     }
 
@@ -308,5 +310,23 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
                 totalCommitment: eventDetails.totalCommitment,
                 location: eventDetails.location
             });
+    }
+
+    //create an isValiation ready view function, enter an array of eventsId and check if they are ready for validation, (10mins before and after event end time), return an array of bool
+    function isValidationReady(uint256[] memory _eventIds) public view returns (bool[] memory) {
+        bool[] memory ready = new bool[](_eventIds.length);
+        for (uint256 i; i < _eventIds.length; ) {
+            ready[i] = _isValidationReady(_eventIds[i]);
+            unchecked {
+                ++i;
+            }
+        }
+        return ready;
+    }
+
+    function _isValidationReady(uint256 _eventId) internal view returns (bool) {
+        Event storage myEvent = events[_eventId];
+        //@todo not hardcoding the 10mins
+        return block.timestamp >= myEvent.arrivalTime - 600 && block.timestamp <= myEvent.arrivalTime + 600;
     }
 }
