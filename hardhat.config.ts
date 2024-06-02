@@ -4,11 +4,8 @@ import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-deploy";
 import * as dotenv from "dotenv";
 import "hardhat-abi-exporter";
-
-const pk = process.env.PRIVATE_KEY_SST;
-
 dotenv.config();
-
+const pk = process.env.PRIVATE_KEY_SST || "";
 const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.24",
@@ -45,7 +42,7 @@ const config: HardhatUserConfig = {
     sst: {
       chainId: 534351,
       url: "https://sepolia-rpc.scroll.io/",
-      // accounts: [pk],
+      accounts: [pk],
     },
   },
   namedAccounts: {

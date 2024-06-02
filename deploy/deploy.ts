@@ -11,12 +11,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const { deployer } = await getNamedAccounts();
 
-  //deploy mock token contract
-  const mockToken = await deploy("ERC20Mock", {
-    from: deployer,
-    args: ["Be Right There", "BRT"],
-    log: true,
-  });
+  //   deploy mock token contract
+  //   const mockToken = await deploy("ERC20Mock", {
+  //     from: deployer,
+  //     args: ["Be Right There", "BRT"],
+  //     log: true,
+  //   });
 
   const deployment = await deploy("EventContract", {
     from: deployer,
@@ -24,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       execute: {
         init: {
           methodName: "initialize",
-          args: [mockToken.address],
+          args: ["0xf8Bc58f8aef773aBBA1019E8aA048fc5AF876a38"],
         },
       },
       proxyContract: "OpenZeppelinTransparentProxy",
@@ -33,6 +33,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   await save("EventContract", { ...deployment, abi: deployment.abi });
+  //   await save("ERC20Mock", { ...mockToken, abi: mockToken.abi });
 };
 
 export default func;

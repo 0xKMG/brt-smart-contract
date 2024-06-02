@@ -45,6 +45,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         newEvent.isEnded = false;
         newEvent.commitmentRequired = commitment;
         newEvent.location = _location;
+        _acceptInvite(newEvent.eventId);
         inviteUsers(eventCount, _invitees);
 
         emit EventCreated(eventCount, _name, _regDeadline, _arrivalTime, _location);
@@ -72,6 +73,13 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         require(myEvent.participantStatus[msg.sender] == UserStatus.Invited, "No invitation found");
         require(block.timestamp <= myEvent.regDeadline, "Registration deadline passed");
 
+        _acceptInvite(_eventId);
+
+        emit UserAccepted(_eventId, msg.sender);
+    }
+
+    function _acceptInvite(uint256 _eventId) internal {
+        Event storage myEvent = events[_eventId];
         token.safeTransferFrom(msg.sender, address(this), myEvent.commitmentRequired);
         userClaimableAmount[msg.sender] += myEvent.commitmentRequired;
         myEvent.participantStatus[msg.sender] = UserStatus.Accepted;
@@ -79,8 +87,6 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         joinedEvents[msg.sender].push(_eventId);
         myEvent.totalCommitment += myEvent.commitmentRequired;
         eventCountByUser[msg.sender]++;
-
-        emit UserAccepted(_eventId, msg.sender);
     }
 
     function checkArrivals(uint256 _eventId) public {
