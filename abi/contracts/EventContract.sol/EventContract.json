@@ -548,6 +548,168 @@
         "type": "address"
       }
     ],
+    "name": "getPendingEvents",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "eventId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "regDeadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "arrivalTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isEnded",
+            "type": "bool"
+          },
+          {
+            "internalType": "address[]",
+            "name": "participantList",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address[]",
+            "name": "onTimeParticipants",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "penalties",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRequired",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalCommitment",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "location",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct IEventContract.EventView[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "isEnded",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isAccepted",
+        "type": "bool"
+      }
+    ],
+    "name": "getUserEvents",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "eventId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "regDeadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "arrivalTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isEnded",
+            "type": "bool"
+          },
+          {
+            "internalType": "address[]",
+            "name": "participantList",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address[]",
+            "name": "onTimeParticipants",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "penalties",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRequired",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalCommitment",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "location",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct IEventContract.EventView[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
     "name": "getUserJoinedEvents",
     "outputs": [
       {

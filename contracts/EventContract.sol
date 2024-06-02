@@ -221,4 +221,92 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
 
         return eventsView;
     }
+
+    function getPendingEvents(address _user) public view returns (EventView[] memory) {
+        uint256[] memory eventIds = invitedEvents[_user];
+        uint256 length = eventIds.length;
+
+        EventView[] memory eventsView = new EventView[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            Event storage eventDetails = events[eventIds[i]];
+            if (eventDetails.participantStatus[_user] == UserStatus.Invited) {
+                eventsView[i] = EventView({
+                    eventId: eventDetails.eventId,
+                    name: eventDetails.name,
+                    regDeadline: eventDetails.regDeadline,
+                    arrivalTime: eventDetails.arrivalTime,
+                    isEnded: eventDetails.isEnded,
+                    participantList: eventDetails.participantList,
+                    onTimeParticipants: eventDetails.onTimeParticipants,
+                    penalties: eventDetails.penalties,
+                    commitmentRequired: eventDetails.commitmentRequired,
+                    totalCommitment: eventDetails.totalCommitment,
+                    location: eventDetails.location
+                });
+            }
+        }
+
+        return eventsView;
+    }
+
+    function getUserEvents(address _user, bool isEnded, bool isAccepted) public view returns (EventView[] memory) {
+        uint256[] memory eventIds = joinedEvents[_user];
+        uint256 length = eventIds.length;
+
+        // Temporary storage for filtering events
+        EventView[] memory tempEventsView = new EventView[](length);
+        uint256 count = 0;
+
+        for (uint256 i = 0; i < length; i++) {
+            Event storage eventDetails = events[eventIds[i]];
+            if (isAccepted && !isEnded && _isAcceptedButNotEnded(eventDetails, _user)) {
+                tempEventsView[count] = _createEventView(eventDetails);
+                count++;
+            } else if (isAccepted && isEnded && _isAcceptedAndEnded(eventDetails, _user)) {
+                tempEventsView[count] = _createEventView(eventDetails);
+                count++;
+            } else if (!isAccepted && !isEnded && _isNotAcceptedAndNotEnded(eventDetails, _user)) {
+                tempEventsView[count] = _createEventView(eventDetails);
+                count++;
+            }
+        }
+
+        // Create a fixed-size array to return only the filtered events
+        EventView[] memory eventsView = new EventView[](count);
+        for (uint256 i = 0; i < count; i++) {
+            eventsView[i] = tempEventsView[i];
+        }
+
+        return eventsView;
+    }
+
+    function _isAcceptedButNotEnded(Event storage eventDetails, address _user) internal view returns (bool) {
+        return eventDetails.participantStatus[_user] == UserStatus.Accepted && !eventDetails.isEnded;
+    }
+
+    function _isAcceptedAndEnded(Event storage eventDetails, address _user) internal view returns (bool) {
+        return eventDetails.participantStatus[_user] == UserStatus.Accepted && eventDetails.isEnded;
+    }
+
+    function _isNotAcceptedAndNotEnded(Event storage eventDetails, address _user) internal view returns (bool) {
+        return eventDetails.participantStatus[_user] != UserStatus.Accepted && !eventDetails.isEnded;
+    }
+
+    function _createEventView(Event storage eventDetails) internal view returns (EventView memory) {
+        return
+            EventView({
+                eventId: eventDetails.eventId,
+                name: eventDetails.name,
+                regDeadline: eventDetails.regDeadline,
+                arrivalTime: eventDetails.arrivalTime,
+                isEnded: eventDetails.isEnded,
+                participantList: eventDetails.participantList,
+                onTimeParticipants: eventDetails.onTimeParticipants,
+                penalties: eventDetails.penalties,
+                commitmentRequired: eventDetails.commitmentRequired,
+                totalCommitment: eventDetails.totalCommitment,
+                location: eventDetails.location
+            });
+    }
 }
