@@ -23,6 +23,9 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
 
     mapping(address => uint256[]) public invitedEvents;
     uint256[] public activeEvents;
+    mapping(address => uint256) public userTotalContribution;
+    mapping(address => uint256) public userTotalClaimed;
+    mapping(address => uint256) public userTotalPenalties;
 
     function initialize(address _token) public initializer {
         token = IERC20(_token);
@@ -90,6 +93,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         myEvent.participantList.push(msg.sender);
         joinedEvents[msg.sender].push(_eventId);
         myEvent.totalCommitment += myEvent.commitmentRequired;
+        userTotalContribution[msg.sender] += myEvent.commitmentRequired;
         eventCountByUser[msg.sender]++;
     }
 
@@ -141,6 +145,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
 
     function _handlePenalty(uint256 _eventId, address _participant) internal {
         userClaimableAmount[_participant] -= events[_eventId].penalties;
+        userTotalPenalties[_participant] += events[_eventId].penalties;
     }
 
     function getUserJoinedEvents(address _user) public view returns (uint256[] memory) {
@@ -155,6 +160,7 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         require(userClaimableAmount[msg.sender] > 0, "No claimable amount");
         uint256 amount = userClaimableAmount[msg.sender];
         userClaimableAmount[msg.sender] = 0;
+        userTotalClaimed[msg.sender] += amount;
         token.safeTransfer(msg.sender, amount);
         emit Claimed(msg.sender, amount);
     }
@@ -324,9 +330,21 @@ contract EventContract is IEventContract, Initializable, OwnableUpgradeable {
         return ready;
     }
 
+    //@todo without hardcode
     function _isValidationReady(uint256 _eventId) internal view returns (bool) {
         Event storage myEvent = events[_eventId];
-        //@todo not hardcoding the 10mins
         return block.timestamp >= myEvent.arrivalTime - 600 && block.timestamp <= myEvent.arrivalTime + 600;
+    }
+
+    function getUserContribution(address _user) public view returns (uint256) {
+        return userTotalContribution[_user];
+    }
+
+    function getUserClaimed(address _user) public view returns (uint256) {
+        return userTotalClaimed[_user];
+    }
+
+    function getUserPenalties(address _user) public view returns (uint256) {
+        return userTotalPenalties[_user];
     }
 }
